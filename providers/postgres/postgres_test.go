@@ -32,7 +32,7 @@ func cleanDB(db *sql.DB) error {
 		    id SERIAL PRIMARY KEY,
 			name VARCHAR NOT NULL,
 			admin_id INTEGER NOT NULL,
-			user_ids INTEGER[] DEFAULT '{}',
+			users_ids INTEGER[],
 		    created_at TIMESTAMP with TIME ZONE DEFAULT now(),
 		    deleted_at TIMESTAMP DEFAULT NULL
 		);
@@ -78,6 +78,7 @@ func TestGlobal(t *testing.T) {
 	defer closeDB(provider.DB)
 
 	t.Run("New", testNew)
+	t.Run("Get", testGet)
 	// t.Run("List", testList)
 	// t.Run("update", testUpdate)
 	// t.Run("delete", testDelete)
@@ -89,6 +90,16 @@ func testNew(t *testing.T) {
 	_, err := provider.New(context.Background(), 1, "super groupe")
 	if err != nil {
 		t.Error("Error should be nil but got:", err)
+	}
+}
+
+// Test Get
+func testGet(t *testing.T) {
+	_, err := provider.Get(context.Background(), 1, 1, "group name")
+
+	if err != nil {
+		t.Error("Error should be nil but got:", err)
+		return
 	}
 }
 

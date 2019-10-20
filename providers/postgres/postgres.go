@@ -7,6 +7,8 @@ import (
 	"fmt"
 
 	"github.com/idirall22/group/models"
+	postModels "github.com/idirall22/post/models"
+	"github.com/lib/pq"
 )
 
 // PostgresProvider structure
@@ -65,8 +67,89 @@ func (p *PostgresProvider) New(ctx context.Context, userID int64, name string) (
 }
 
 // Get get a group
-func (p *PostgresProvider) Get(ctx context.Context, id int64, name string) (*models.Group, error) {
-	return nil, nil
+func (p *PostgresProvider) Get(ctx context.Context, id, userID int64, name string) (*models.Group, error) {
+
+	tx, err := p.DB.BeginTx(ctx, nil)
+
+	defer tx.Rollback()
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if the user has already joined the group
+	query := fmt.Sprintf(`
+		SELECT EXISTS (SELECT 1 FROM %s WHERE id=%d AND admin_id=%d OR %d=ANY (users_ids))`,
+		p.TableName, id, userID, userID)
+
+	stmt, err := tx.PrepareContext(ctx, query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	exists := false
+
+	if err := stmt.QueryRowContext(ctx).Scan(&exists); err != nil {
+		return nil, err
+	}
+
+	if !exists {
+		return nil, errors.New("You need to join group")
+	}
+
+	// query by id if id > 0 or by name
+	query = fmt.Sprintf(`
+		SELECT
+		g.name, g.admin_id, g.users_ids,
+		p.id, p.content, p.media_urls, p.user_id, p.created_at
+		FROM
+		(SELECT name, admin_id, users_ids FROM %s WHERE id=%d) g
+		JOIN
+		posts p
+		ON p.group_id=%d
+	`, p.TableName, id, id)
+
+	stmt, err = tx.PrepareContext(ctx, query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := stmt.QueryContext(ctx)
+
+	defer rows.Close()
+
+	if err != nil {
+		return nil, err
+	}
+
+	group := &models.Group{}
+
+	for rows.Next() {
+		post := postModels.Post{}
+
+		// fmt.Println(rows.Columns())
+		if err := rows.Scan(
+			&group.Name,
+			&group.AdminID,
+			pq.Array(&group.UsersIDs),
+			&post.ID,
+			&post.Content,
+			pq.Array(&post.MediaURLs),
+			&post.UserID,
+			&post.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		group.Posts = append(group.Posts, post)
+	}
+
+	group.ID = id
+
+	tx.Commit()
+
+	return group, nil
 }
 
 // List get a list of groups
