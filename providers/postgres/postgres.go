@@ -188,8 +188,13 @@ func (p *PostgresProvider) List(ctx context.Context, offset, limit int) ([]*mode
 }
 
 // Update update a group
-func (p *PostgresProvider) Update(ctx context.Context, id int64, name string) (int64, error) {
-	return 0, nil
+func (p *PostgresProvider) Update(ctx context.Context, id int64, name string) error {
+
+	query := fmt.Sprintf(`UPDATE %s SET name='%s' WHERE id=%d`, p.TableName, name, id)
+
+	_, err := p.DB.ExecContext(ctx, query)
+
+	return err
 }
 
 // Delete delete a group

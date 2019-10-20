@@ -80,7 +80,7 @@ func TestGlobal(t *testing.T) {
 	t.Run("New", testNew)
 	t.Run("Get", testGet)
 	t.Run("List", testList)
-	// t.Run("update", testUpdate)
+	t.Run("update", testUpdate)
 	// t.Run("delete", testDelete)
 }
 
@@ -113,16 +113,16 @@ func testList(t *testing.T) {
 	}
 }
 
-// // Test update
-// func testUpdate(t *testing.T) {
-// 	_, err := provider.Update(context.Background(), 1, 1, "updated message")
-//
-// 	if err != nil {
-// 		t.Error("Error should be nil but got:", err)
-// 		return
-// 	}
-// }
-//
+// Test update
+func testUpdate(t *testing.T) {
+	err := provider.Update(context.Background(), 1, "updated goupe name")
+
+	if err != nil {
+		t.Error("Error should be nil but got:", err)
+		return
+	}
+}
+
 // // Test delete
 // func testDelete(t *testing.T) {
 // 	err := provider.Delete(context.Background(), 1, 1)
