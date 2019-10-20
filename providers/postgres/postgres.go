@@ -3,6 +3,8 @@ package provider
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"fmt"
 
 	"github.com/idirall22/group/models"
 )
@@ -14,36 +16,80 @@ type PostgresProvider struct {
 }
 
 // New add a group
-func (s *PostgresProvider) New(ctx context.Context, userID int64, name string) (*models.Group, error) {
-	return nil, nil
+func (p *PostgresProvider) New(ctx context.Context, userID int64, name string) (int64, error) {
+
+	tx, err := p.DB.BeginTx(ctx, nil)
+
+	defer tx.Rollback()
+
+	if err != nil {
+		return 0, err
+	}
+
+	query := fmt.Sprintf(`SELECT EXISTS (SELECT 1 FROM groups WHERE name='%s')`, name)
+
+	stmt, err := tx.PrepareContext(ctx, query)
+
+	if err != nil {
+		return 0, err
+	}
+
+	exists := false
+
+	if err := stmt.QueryRowContext(ctx).Scan(&exists); err != nil {
+		return 0, err
+	}
+
+	if exists {
+		return 0, errors.New("Group with the same name already exists")
+	}
+
+	query = fmt.Sprintf(`INSERT INTO %s (name, admin_id) VALUES ($1, $2) RETURNING id`,
+		p.TableName)
+
+	stmt, err = tx.PrepareContext(ctx, query)
+
+	if err != nil {
+		return 0, nil
+	}
+
+	groupID := int64(0)
+
+	if err := stmt.QueryRowContext(ctx, name, userID).Scan(&groupID); err != nil {
+		return 0, err
+	}
+
+	tx.Commit()
+
+	return groupID, nil
 }
 
 // Get get a group
-func (s *PostgresProvider) Get(ctx context.Context, id int64, name string) (*models.Group, error) {
+func (p *PostgresProvider) Get(ctx context.Context, id int64, name string) (*models.Group, error) {
 	return nil, nil
 }
 
 // List get a list of groups
-func (s *PostgresProvider) List(ctx context.Context, offset, limit int) ([]*models.Group, error) {
+func (p *PostgresProvider) List(ctx context.Context, offset, limit int) ([]*models.Group, error) {
 	return nil, nil
 }
 
 // Update update a group
-func (s *PostgresProvider) Update(ctx context.Context, id int64, name string) (*models.Group, error) {
-	return nil, nil
+func (p *PostgresProvider) Update(ctx context.Context, id int64, name string) (int64, error) {
+	return 0, nil
 }
 
 // Delete delete a group
-func (s *PostgresProvider) Delete(ctx context.Context, id, userID int64) error {
+func (p *PostgresProvider) Delete(ctx context.Context, id, userID int64) error {
 	return nil
 }
 
 // Join join a group
-func (s *PostgresProvider) Join(ctx context.Context, userID, groupID int64) (int64, error) {
+func (p *PostgresProvider) Join(ctx context.Context, userID, groupID int64) (int64, error) {
 	return 0, nil
 }
 
 // Leave leave a group
-func (s *PostgresProvider) Leave(ctx context.Context, userID, groupID int64) (int64, error) {
+func (p *PostgresProvider) Leave(ctx context.Context, userID, groupID int64) (int64, error) {
 	return 0, nil
 }
