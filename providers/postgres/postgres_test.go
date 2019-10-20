@@ -79,7 +79,7 @@ func TestGlobal(t *testing.T) {
 
 	t.Run("New", testNew)
 	t.Run("Get", testGet)
-	// t.Run("List", testList)
+	t.Run("List", testList)
 	// t.Run("update", testUpdate)
 	// t.Run("delete", testDelete)
 }
@@ -103,21 +103,16 @@ func testGet(t *testing.T) {
 	}
 }
 
-// // Test List
-// func testList(t *testing.T) {
-// 	comments, err := provider.List(context.Background(), 1, commentNum, 0)
-//
-// 	if err != nil {
-// 		t.Error("Error should be nil but got:", err)
-// 		return
-// 	}
-//
-// 	if len(comments) != commentNum {
-// 		t.Errorf("Error comments slice length should be %d But got %d",
-// 			commentNum, len(comments))
-// 	}
-// }
-//
+// Test List
+func testList(t *testing.T) {
+	_, err := provider.List(context.Background(), groupNum, 0)
+
+	if err != nil {
+		t.Error("Error should be nil but got:", err)
+		return
+	}
+}
+
 // // Test update
 // func testUpdate(t *testing.T) {
 // 	_, err := provider.Update(context.Background(), 1, 1, "updated message")

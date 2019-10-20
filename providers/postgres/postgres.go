@@ -154,7 +154,37 @@ func (p *PostgresProvider) Get(ctx context.Context, id, userID int64, name strin
 
 // List get a list of groups
 func (p *PostgresProvider) List(ctx context.Context, offset, limit int) ([]*models.Group, error) {
-	return nil, nil
+	query := fmt.Sprintf(`SELECT id, name, admin_id, created_at FROM %s LIMIT %d OFFSET %d`,
+		p.TableName, offset, limit*offset)
+
+	stmt, err := p.DB.PrepareContext(ctx, query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := stmt.QueryContext(ctx)
+
+	defer rows.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	groups := []*models.Group{}
+
+	for rows.Next() {
+		group := &models.Group{}
+		if err := rows.Scan(
+			&group.ID,
+			&group.Name,
+			&group.AdminID,
+			&group.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		groups = append(groups, group)
+	}
+	return groups, nil
 }
 
 // Update update a group
