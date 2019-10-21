@@ -199,15 +199,68 @@ func (p *PostgresProvider) Update(ctx context.Context, id int64, name string) er
 
 // Delete delete a group
 func (p *PostgresProvider) Delete(ctx context.Context, id, userID int64) error {
-	return nil
+
+	query := fmt.Sprintf(`UPDATE %s SET deleted_at=now() WHERE id=%d AND admin_id=%d`,
+		p.TableName, id, userID)
+
+	stmt, err := p.DB.PrepareContext(ctx, query)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.ExecContext(ctx)
+	return err
 }
 
 // Join join a group
-func (p *PostgresProvider) Join(ctx context.Context, userID, groupID int64) (int64, error) {
-	return 0, nil
+func (p *PostgresProvider) Join(ctx context.Context, userID, groupID int64) error {
+
+	tx, err := p.DB.BeginTx(ctx, nil)
+
+	defer tx.Rollback()
+
+	if err != nil {
+		return err
+	}
+
+	query := fmt.Sprintf(`SELECT EXISTS(SELECT 1 FROM users WHERE id=%d)`, userID)
+
+	stmt, err := tx.PrepareContext(ctx, query)
+
+	if err != nil {
+		return err
+	}
+
+	exists := false
+	err = stmt.QueryRowContext(ctx).Scan(&exists)
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		return errors.New("User not exists")
+	}
+
+	query = fmt.Sprintf(`UPDATE %s SET users_ids=array_append(users_ids, %d) WHERE id=%d AND admin_id != %d`,
+		p.TableName, userID, groupID, userID)
+
+	stmt, err = tx.PrepareContext(ctx, query)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.ExecContext(ctx)
+
+	tx.Commit()
+
+	return err
 }
 
 // Leave leave a group
-func (p *PostgresProvider) Leave(ctx context.Context, userID, groupID int64) (int64, error) {
-	return 0, nil
+func (p *PostgresProvider) Leave(ctx context.Context, userID, groupID int64) error {
+
+	return nil
 }
