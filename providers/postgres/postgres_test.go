@@ -77,13 +77,13 @@ func TestGlobal(t *testing.T) {
 	}
 	defer closeDB(provider.DB)
 
-	t.Run("Get", testGet)
 	t.Run("New", testNew)
+	t.Run("Get", testGet)
 	t.Run("List", testList)
 	t.Run("update", testUpdate)
 	t.Run("delete", testDelete)
 	t.Run("join", testJoin)
-
+	// t.Run("leave", testLeave)
 }
 
 // Test New
@@ -137,6 +137,15 @@ func testDelete(t *testing.T) {
 // Test join a group
 func testJoin(t *testing.T) {
 	if err := provider.Join(context.Background(), 1, 1); err != nil {
+		t.Error("Error should be nil but got:", err)
+		return
+	}
+
+}
+
+// Test leave a group
+func testLeave(t *testing.T) {
+	if err := provider.Leave(context.Background(), 2, 1); err != nil {
 		t.Error("Error should be nil but got:", err)
 		return
 	}

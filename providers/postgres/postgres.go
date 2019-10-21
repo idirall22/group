@@ -95,7 +95,7 @@ func (p *PostgresProvider) Get(ctx context.Context, id, userID int64, name strin
 	}
 
 	if !exists {
-		return nil, errors.New("You need to join group")
+		return nil, ErrorMustJoinGroup
 	}
 
 	// query by id if id > 0 or by name
@@ -261,6 +261,53 @@ func (p *PostgresProvider) Join(ctx context.Context, userID, groupID int64) erro
 
 // Leave leave a group
 func (p *PostgresProvider) Leave(ctx context.Context, userID, groupID int64) error {
+
+	tx, err := p.DB.BeginTx(ctx, nil)
+
+	defer tx.Rollback()
+
+	if err != nil {
+		return err
+	}
+
+	// Check if group exists
+	query := fmt.Sprintf(`SELECT EXISTS(SELECT 1 FROM %s WHERE id=%d)`, p.TableName, groupID)
+
+	stmt, err := tx.PrepareContext(ctx, query)
+
+	if err != nil {
+		return err
+	}
+
+	exists := false
+
+	err = stmt.QueryRowContext(ctx).Scan(&exists)
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		return ErrorGroupNotExists
+	}
+
+	// Remove a user from users_ids array
+	query = fmt.Sprintf(`UPDATE %s SET users_ids=array_remove(users_ids, %d) WHERE id=%d`,
+		p.TableName, userID, groupID)
+
+	stmt, err = tx.PrepareContext(ctx, query)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.ExecContext(ctx)
+
+	if err != nil {
+		return err
+	}
+
+	tx.Commit()
 
 	return nil
 }
