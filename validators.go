@@ -1,7 +1,6 @@
 package group
 
 import (
-	"errors"
 	"math"
 )
 
@@ -24,7 +23,7 @@ func validateOffLim(off, lim int) (int, int) {
 // validate id used to query
 func validateID(id int64) error {
 	if id < 0 || id > math.MaxInt64 {
-		return errors.New("Id not valid")
+		return ErrorID
 	}
 	return nil
 }
