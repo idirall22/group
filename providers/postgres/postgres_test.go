@@ -32,7 +32,7 @@ func cleanDB(db *sql.DB) error {
 		    id SERIAL PRIMARY KEY,
 			name VARCHAR NOT NULL,
 			admin_id INTEGER NOT NULL,
-			users_ids INTEGER[],
+			users_ids INTEGER[] default '{}'::int[],
 		    created_at TIMESTAMP with TIME ZONE DEFAULT now(),
 		    deleted_at TIMESTAMP DEFAULT NULL
 		);
@@ -97,7 +97,7 @@ func testNew(t *testing.T) {
 
 // Test Get
 func testGet(t *testing.T) {
-	_, err := provider.Get(context.Background(), 1, 1, "group name")
+	_, err := provider.Get(context.Background(), 1, 1)
 
 	if err != nil {
 		t.Error("Error should be nil but got:", err)
@@ -117,7 +117,7 @@ func testList(t *testing.T) {
 
 // Test update
 func testUpdate(t *testing.T) {
-	err := provider.Update(context.Background(), 1, "updated goupe name")
+	err := provider.Update(context.Background(), 1, 1, "updated goupe name")
 
 	if err != nil {
 		t.Error("Error should be nil but got:", err)

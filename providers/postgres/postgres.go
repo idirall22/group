@@ -28,6 +28,7 @@ func (p *PostgresProvider) New(ctx context.Context, userID int64, name string) (
 		return 0, err
 	}
 
+	// Check if groups already exists
 	query := fmt.Sprintf(`SELECT EXISTS (SELECT 1 FROM groups WHERE name='%s')`, name)
 
 	stmt, err := tx.PrepareContext(ctx, query)
@@ -43,10 +44,11 @@ func (p *PostgresProvider) New(ctx context.Context, userID int64, name string) (
 	}
 
 	if exists {
-		return 0, errors.New("Group with the same name already exists")
+		return 0, ErrorGroupExists
 	}
 
 	query = fmt.Sprintf(`INSERT INTO %s (name, admin_id) VALUES ($1, $2) RETURNING id`,
+		// Insert a new group
 		p.TableName)
 
 	stmt, err = tx.PrepareContext(ctx, query)
@@ -67,7 +69,7 @@ func (p *PostgresProvider) New(ctx context.Context, userID int64, name string) (
 }
 
 // Get get a group
-func (p *PostgresProvider) Get(ctx context.Context, id, userID int64, name string) (*models.Group, error) {
+func (p *PostgresProvider) Get(ctx context.Context, id, userID int64) (*models.Group, error) {
 
 	tx, err := p.DB.BeginTx(ctx, nil)
 
@@ -154,6 +156,7 @@ func (p *PostgresProvider) Get(ctx context.Context, id, userID int64, name strin
 
 // List get a list of groups
 func (p *PostgresProvider) List(ctx context.Context, offset, limit int) ([]*models.Group, error) {
+
 	query := fmt.Sprintf(`SELECT id, name, admin_id, created_at FROM %s LIMIT %d OFFSET %d`,
 		p.TableName, offset, limit*offset)
 
@@ -188,28 +191,102 @@ func (p *PostgresProvider) List(ctx context.Context, offset, limit int) ([]*mode
 }
 
 // Update update a group
-func (p *PostgresProvider) Update(ctx context.Context, id int64, name string) error {
+func (p *PostgresProvider) Update(ctx context.Context, id, adminID int64, name string) error {
 
-	query := fmt.Sprintf(`UPDATE %s SET name='%s' WHERE id=%d`, p.TableName, name, id)
+	tx, err := p.DB.BeginTx(ctx, nil)
 
-	_, err := p.DB.ExecContext(ctx, query)
+	defer tx.Rollback()
 
-	return err
-}
+	if err != nil {
+		return err
+	}
 
-// Delete delete a group
-func (p *PostgresProvider) Delete(ctx context.Context, id, userID int64) error {
+	// Check if the group exists and the user want to update is the admin
+	query := fmt.Sprintf(`SELECT EXISTS( SELECT 1 FROM %s WHERE id=%d AND admin_id=%d)`,
+		p.TableName, id, adminID)
 
-	query := fmt.Sprintf(`UPDATE %s SET deleted_at=now() WHERE id=%d AND admin_id=%d`,
-		p.TableName, id, userID)
+	stmt, err := tx.PrepareContext(ctx, query)
 
-	stmt, err := p.DB.PrepareContext(ctx, query)
+	if err != nil {
+		return err
+	}
+
+	exists := false
+
+	err = stmt.QueryRowContext(ctx).Scan(&exists)
+
+	if err != nil {
+		return err
+	}
+
+	if !exists {
+		return ErrorUpdateGroup
+	}
+
+	// Update the group infos
+	query = fmt.Sprintf(`UPDATE %s SET name='%s' WHERE id=%d`, p.TableName, name, id)
+
+	stmt, err = tx.PrepareContext(ctx, query)
 
 	if err != nil {
 		return err
 	}
 
 	_, err = stmt.ExecContext(ctx)
+
+	tx.Commit()
+
+	return err
+}
+
+// Delete delete a group
+func (p *PostgresProvider) Delete(ctx context.Context, id, adminID int64) error {
+
+	tx, err := p.DB.BeginTx(ctx, nil)
+
+	defer tx.Rollback()
+
+	if err != nil {
+		return err
+	}
+
+	// Check if the group exists and the user want to delete is the admin and if the group contains members
+	query := fmt.Sprintf(`
+		SELECT EXISTS( SELECT 1 FROM %s WHERE id=%d AND admin_id=%d AND array_length(users_ids, 1) < 1)
+	`,
+		p.TableName, id, adminID)
+
+	stmt, err := tx.PrepareContext(ctx, query)
+
+	if err != nil {
+		return err
+	}
+
+	canDelete := false
+
+	err = stmt.QueryRowContext(ctx).Scan(&canDelete)
+
+	if err != nil {
+		return err
+	}
+
+	if canDelete {
+		return ErrorDeleteGroup
+	}
+
+	query = fmt.Sprintf(`UPDATE %s SET deleted_at=now() WHERE id=%d AND admin_id=%d`,
+		p.TableName, id, adminID)
+
+	stmt, err = tx.PrepareContext(ctx, query)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = stmt.ExecContext(ctx)
+
+	tx.Commit()
+
 	return err
 }
 
