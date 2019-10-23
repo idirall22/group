@@ -62,6 +62,23 @@ func (s *Service) GetGroupHandler(w http.ResponseWriter, r *http.Request) {
 // ListGroupsHandler list groups
 func (s *Service) ListGroupsHandler(w http.ResponseWriter, r *http.Request) {
 
+	limit, offset := getParamURLLimitOffset(r)
+
+	ctx, f := context.WithTimeout(r.Context(), TimeoutRequest)
+	defer f()
+
+	groups, err := s.listGroups(ctx, limit, offset)
+
+	if err != nil {
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Add("Content-Type", "application/json")
+
+	if err := json.NewEncoder(w).Encode(groups); err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
 }
 
 // UpdateGroupHandler update a group

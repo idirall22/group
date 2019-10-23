@@ -30,3 +30,25 @@ func getURLID(r *http.Request) (int64, error) {
 
 	return id, nil
 }
+
+// get limit and offset from url
+func getParamURLLimitOffset(r *http.Request) (int, int) {
+
+	limitString := r.URL.Query().Get("limit")
+
+	limit, err := strconv.Atoi(limitString)
+
+	if err != nil {
+		limit = 0
+	}
+
+	offsetString := r.URL.Query().Get("offset")
+
+	offset, err := strconv.Atoi(offsetString)
+
+	if err != nil {
+		offset = DefaultGroupOffset
+	}
+
+	return offset, limit
+}
