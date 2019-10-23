@@ -127,3 +127,23 @@ func testDeleteGroupHandler(t *testing.T) {
 		t.Errorf("Error status should be %d but got %d", http.StatusNoContent, w.Code)
 	}
 }
+
+// Test join group
+func testJoinGroupHandler(t *testing.T) {
+
+	w := httptest.NewRecorder()
+	r, err := http.NewRequest("POST", "/group/join/1", nil)
+
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	router := mux.NewRouter()
+	router.HandleFunc("/group/join/{id}", testService.JoinGroupHandler)
+	router.ServeHTTP(w, r)
+
+	if w.Code != http.StatusNoContent {
+		t.Errorf("Error status should be %d but got %d", http.StatusNoContent, w.Code)
+	}
+}
