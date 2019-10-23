@@ -84,5 +84,6 @@ func TestGlobal(t *testing.T) {
 	t.Run("get group", testGetGroupHandler)
 	t.Run("list group", testListGroupHandler)
 	t.Run("update group", testUpdateGroupHandler)
+	t.Run("delete group", testDeleteGroupHandler)
 
 }

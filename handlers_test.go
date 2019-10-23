@@ -107,3 +107,23 @@ func testUpdateGroupHandler(t *testing.T) {
 		t.Errorf("Error status should be %d but got %d", http.StatusNoContent, w.Code)
 	}
 }
+
+// Test delete group
+func testDeleteGroupHandler(t *testing.T) {
+
+	w := httptest.NewRecorder()
+	r, err := http.NewRequest("DELETE", "/group/1", nil)
+
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	router := mux.NewRouter()
+	router.HandleFunc("/group/{id}", testService.DeleteGroupHandler)
+	router.ServeHTTP(w, r)
+
+	if w.Code != http.StatusNoContent {
+		t.Errorf("Error status should be %d but got %d", http.StatusNoContent, w.Code)
+	}
+}
