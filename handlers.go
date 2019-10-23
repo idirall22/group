@@ -111,6 +111,23 @@ func (s *Service) UpdateGroupHandler(w http.ResponseWriter, r *http.Request) {
 // DeleteGroupHandler delete a group
 func (s *Service) DeleteGroupHandler(w http.ResponseWriter, r *http.Request) {
 
+	id, err := getURLID(r)
+
+	if err != nil {
+		return
+	}
+
+	ctx, f := context.WithTimeout(r.Context(), TimeoutRequest)
+	defer f()
+
+	err = s.deleteGroup(ctx, id)
+
+	if err != nil {
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	w.Header().Add("Content-Type", "application/json")
 }
 
 // JoinGroupHandler join a group
