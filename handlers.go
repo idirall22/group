@@ -1,10 +1,36 @@
 package group
 
-import "net/http"
+import (
+	"context"
+	"encoding/json"
+	"net/http"
+)
 
 // AddGroupHandler add a new group
 func (s *Service) AddGroupHandler(w http.ResponseWriter, r *http.Request) {
 
+	form := GForm{}
+	if err := json.NewDecoder(r.Body).Decode(&form); err != nil {
+		return
+	}
+
+	ctx, f := context.WithTimeout(r.Context(), TimeoutRequest)
+	defer f()
+
+	id, err := s.addGroup(ctx, form)
+
+	if err != nil {
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Add("Content-Type", "application/json")
+
+	out := map[string]int64{"id": id}
+
+	if err := json.NewEncoder(w).Encode(out); err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
 }
 
 // GetGroupHandler get a group
