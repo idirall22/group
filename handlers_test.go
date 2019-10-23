@@ -58,3 +58,23 @@ func testGetGroupHandler(t *testing.T) {
 		t.Errorf("Error status should be %d but got %d", http.StatusOK, w.Code)
 	}
 }
+
+// Test get group
+func testListGroupHandler(t *testing.T) {
+
+	w := httptest.NewRecorder()
+	r, err := http.NewRequest("GET", "/group?limit=10&offset=0", nil)
+
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	h := http.HandlerFunc(testService.ListGroupsHandler)
+
+	h.ServeHTTP(w, r)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("Error status should be %d but got %d", http.StatusOK, w.Code)
+	}
+}
