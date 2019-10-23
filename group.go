@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/idirall22/group/models"
+	"github.com/idirall22/utilities"
 )
 
 // Add a group
@@ -25,7 +26,7 @@ func (s *Service) getGroup(ctx context.Context, id int64) (*models.Group, error)
 	userID := int64(1)
 	// Todo: get userID from context
 
-	if err := validateID(id); err != nil {
+	if err := utilities.ValidateID(id); err != nil {
 		return nil, err
 	}
 
@@ -34,7 +35,7 @@ func (s *Service) getGroup(ctx context.Context, id int64) (*models.Group, error)
 
 func (s *Service) listGroups(ctx context.Context, limit, offset int) ([]*models.Group, error) {
 
-	off, lim := validateOffLim(offset, limit)
+	off, lim := utilities.ValidateLimitAndOffset(offset, limit, DefaultGroupLimit, MaxGroupLimit)
 
 	return s.provider.List(ctx, off, lim)
 }
@@ -45,7 +46,7 @@ func (s *Service) updateGroup(ctx context.Context, id int64, form GForm) error {
 	adminID := int64(1)
 	// Todo: get userID from context
 
-	if err := validateID(id); err != nil {
+	if err := utilities.ValidateID(id); err != nil {
 		return err
 	}
 
@@ -62,7 +63,7 @@ func (s *Service) deleteGroup(ctx context.Context, id int64) error {
 	userID := int64(1)
 	// Todo: get userID from context
 
-	if err := validateID(id); err != nil {
+	if err := utilities.ValidateID(id); err != nil {
 		return err
 	}
 
@@ -75,7 +76,7 @@ func (s *Service) joinGroup(ctx context.Context, id int64) error {
 	userID := int64(1)
 	// Todo: get userID from context
 
-	if err := validateID(id); err != nil {
+	if err := utilities.ValidateID(id); err != nil {
 		return err
 	}
 
@@ -88,7 +89,7 @@ func (s *Service) leaveGroup(ctx context.Context, id int64) error {
 	userID := int64(1)
 	// Todo: get userID from context
 
-	if err := validateID(id); err != nil {
+	if err := utilities.ValidateID(id); err != nil {
 		return err
 	}
 
