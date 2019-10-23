@@ -84,6 +84,28 @@ func (s *Service) ListGroupsHandler(w http.ResponseWriter, r *http.Request) {
 // UpdateGroupHandler update a group
 func (s *Service) UpdateGroupHandler(w http.ResponseWriter, r *http.Request) {
 
+	id, err := getURLID(r)
+
+	if err != nil {
+		return
+	}
+
+	form := GForm{}
+	if err := json.NewDecoder(r.Body).Decode(&form); err != nil {
+		return
+	}
+
+	ctx, f := context.WithTimeout(r.Context(), TimeoutRequest)
+	defer f()
+
+	err = s.updateGroup(ctx, id, form)
+
+	if err != nil {
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	w.Header().Add("Content-Type", "application/json")
 }
 
 // DeleteGroupHandler delete a group
