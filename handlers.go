@@ -155,4 +155,21 @@ func (s *Service) JoinGroupHandler(w http.ResponseWriter, r *http.Request) {
 // LeaveGroupHandler leave a group
 func (s *Service) LeaveGroupHandler(w http.ResponseWriter, r *http.Request) {
 
+	id, err := getURLID(r)
+
+	if err != nil {
+		return
+	}
+
+	ctx, f := context.WithTimeout(r.Context(), TimeoutRequest)
+	defer f()
+
+	err = s.leaveGroup(ctx, id)
+
+	if err != nil {
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	w.Header().Add("Content-Type", "application/json")
 }
