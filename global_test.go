@@ -80,5 +80,6 @@ func TestGlobal(t *testing.T) {
 	}
 	defer closeDB(database)
 
-	t.Run("add group", testAddGroup)
+	t.Run("add group", testAddGroupHandler)
+	t.Run("get group", testGetGroupHandler)
 }
