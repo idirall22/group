@@ -4,11 +4,11 @@ import "time"
 
 const (
 
-	// DefaultGroupOffset default query offset
-	DefaultGroupOffset = 10
+	// DefaultGroupLimit default query limit
+	DefaultGroupLimit = 10
 
-	// MaxGroupOffset max query offset
-	MaxGroupOffset = 20
+	// MaxGroupLimit max query limit
+	MaxGroupLimit = 20
 
 	// MinGrpNameLen the minimum length for a group name
 	MinGrpNameLen = 6
