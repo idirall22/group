@@ -59,7 +59,7 @@ func testGetGroupHandler(t *testing.T) {
 	}
 }
 
-// Test get group
+// Test list group
 func testListGroupHandler(t *testing.T) {
 
 	w := httptest.NewRecorder()
@@ -76,5 +76,34 @@ func testListGroupHandler(t *testing.T) {
 
 	if w.Code != http.StatusOK {
 		t.Errorf("Error status should be %d but got %d", http.StatusOK, w.Code)
+	}
+}
+
+// Test list group
+func testUpdateGroupHandler(t *testing.T) {
+
+	b, err := json.Marshal(map[string]string{"name": "update super group"})
+
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	body := bytes.NewReader(b)
+
+	w := httptest.NewRecorder()
+	r, err := http.NewRequest("PUT", "/group/1", body)
+
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	router := mux.NewRouter()
+	router.HandleFunc("/group/{id}", testService.UpdateGroupHandler)
+	router.ServeHTTP(w, r)
+
+	if w.Code != http.StatusNoContent {
+		t.Errorf("Error status should be %d but got %d", http.StatusNoContent, w.Code)
 	}
 }
