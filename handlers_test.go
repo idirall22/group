@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/gorilla/mux"
+	u "github.com/idirall22/user"
 )
 
 // Test add group
@@ -30,7 +31,9 @@ func testAddGroupHandler(t *testing.T) {
 		return
 	}
 
-	h := http.HandlerFunc(testService.AddGroupHandler)
+	r.Header.Add("Authorization", testToken)
+
+	h := http.HandlerFunc(u.AuthnticateUser(testService.AddGroupHandler))
 
 	h.ServeHTTP(w, r)
 
@@ -50,8 +53,10 @@ func testGetGroupHandler(t *testing.T) {
 		return
 	}
 
+	r.Header.Add("Authorization", testToken)
+
 	router := mux.NewRouter()
-	router.HandleFunc("/group/{id}", testService.GetGroupHandler)
+	router.HandleFunc("/group/{id}", u.AuthnticateUser(testService.GetGroupHandler))
 	router.ServeHTTP(w, r)
 
 	if w.Code != http.StatusOK {
@@ -70,7 +75,9 @@ func testListGroupHandler(t *testing.T) {
 		return
 	}
 
-	h := http.HandlerFunc(testService.ListGroupsHandler)
+	r.Header.Add("Authorization", testToken)
+
+	h := http.HandlerFunc(u.AuthnticateUser(testService.ListGroupsHandler))
 
 	h.ServeHTTP(w, r)
 
@@ -99,8 +106,10 @@ func testUpdateGroupHandler(t *testing.T) {
 		return
 	}
 
+	r.Header.Add("Authorization", testToken)
+
 	router := mux.NewRouter()
-	router.HandleFunc("/group/{id}", testService.UpdateGroupHandler)
+	router.HandleFunc("/group/{id}", u.AuthnticateUser(testService.UpdateGroupHandler))
 	router.ServeHTTP(w, r)
 
 	if w.Code != http.StatusNoContent {
@@ -119,8 +128,10 @@ func testDeleteGroupHandler(t *testing.T) {
 		return
 	}
 
+	r.Header.Add("Authorization", testToken)
+
 	router := mux.NewRouter()
-	router.HandleFunc("/group/{id}", testService.DeleteGroupHandler)
+	router.HandleFunc("/group/{id}", u.AuthnticateUser(testService.DeleteGroupHandler))
 	router.ServeHTTP(w, r)
 
 	if w.Code != http.StatusNoContent {
@@ -139,8 +150,10 @@ func testJoinGroupHandler(t *testing.T) {
 		return
 	}
 
+	r.Header.Add("Authorization", testToken)
+
 	router := mux.NewRouter()
-	router.HandleFunc("/group/join/{id}", testService.JoinGroupHandler)
+	router.HandleFunc("/group/join/{id}", u.AuthnticateUser(testService.JoinGroupHandler))
 	router.ServeHTTP(w, r)
 
 	if w.Code != http.StatusNoContent {
@@ -159,8 +172,10 @@ func testLeaveGroupHandler(t *testing.T) {
 		return
 	}
 
+	r.Header.Add("Authorization", testToken)
+
 	router := mux.NewRouter()
-	router.HandleFunc("/group/leave/{id}", testService.LeaveGroupHandler)
+	router.HandleFunc("/group/leave/{id}", u.AuthnticateUser(testService.LeaveGroupHandler))
 	router.ServeHTTP(w, r)
 
 	if w.Code != http.StatusNoContent {

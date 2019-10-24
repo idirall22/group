@@ -13,6 +13,7 @@ import (
 var (
 	testService *Service
 	database    *sql.DB
+	testToken   string
 	tableName   = "groups"
 	query       = fmt.Sprintf(`
 	DROP TABLE IF EXISTS %s;
@@ -49,6 +50,8 @@ func TestGlobal(t *testing.T) {
 
 	provider := &pr.PostgresProvider{DB: db, TableName: tableName}
 	testService = &Service{provider: provider}
+
+	testToken = utilities.LoginUser(db)
 
 	t.Run("add group", testAddGroupHandler)
 	t.Run("get group", testGetGroupHandler)
