@@ -10,8 +10,11 @@ import (
 // Add a group
 func (s *Service) addGroup(ctx context.Context, form GForm) (int64, error) {
 
-	userID := int64(1)
-	// Todo: get userID from context
+	userID, err := utilities.GetUserIDFromContext(ctx)
+
+	if err != nil {
+		return 0, err
+	}
 
 	if err := form.ValidateForm(); err != nil {
 		return 0, err
@@ -23,8 +26,11 @@ func (s *Service) addGroup(ctx context.Context, form GForm) (int64, error) {
 // Get a group
 func (s *Service) getGroup(ctx context.Context, id int64) (*models.Group, error) {
 
-	userID := int64(1)
-	// Todo: get userID from context
+	userID, err := utilities.GetUserIDFromContext(ctx)
+
+	if err != nil {
+		return nil, err
+	}
 
 	if err := utilities.ValidateID(id); err != nil {
 		return nil, err
@@ -43,8 +49,11 @@ func (s *Service) listGroups(ctx context.Context, limit, offset int) ([]*models.
 // Update a group
 func (s *Service) updateGroup(ctx context.Context, id int64, form GForm) error {
 
-	adminID := int64(1)
-	// Todo: get userID from context
+	adminID, err := utilities.GetUserIDFromContext(ctx)
+
+	if err != nil {
+		return err
+	}
 
 	if err := utilities.ValidateID(id); err != nil {
 		return err
@@ -60,8 +69,11 @@ func (s *Service) updateGroup(ctx context.Context, id int64, form GForm) error {
 // Delete a group
 func (s *Service) deleteGroup(ctx context.Context, id int64) error {
 
-	userID := int64(1)
-	// Todo: get userID from context
+	userID, err := utilities.GetUserIDFromContext(ctx)
+
+	if err != nil {
+		return err
+	}
 
 	if err := utilities.ValidateID(id); err != nil {
 		return err
@@ -73,8 +85,11 @@ func (s *Service) deleteGroup(ctx context.Context, id int64) error {
 // Join a Group
 func (s *Service) joinGroup(ctx context.Context, id int64) error {
 
-	userID := int64(1)
-	// Todo: get userID from context
+	userID, err := utilities.GetUserIDFromContext(ctx)
+
+	if err != nil {
+		return err
+	}
 
 	if err := utilities.ValidateID(id); err != nil {
 		return err
@@ -86,8 +101,11 @@ func (s *Service) joinGroup(ctx context.Context, id int64) error {
 // Leave a group
 func (s *Service) leaveGroup(ctx context.Context, id int64) error {
 
-	userID := int64(1)
-	// Todo: get userID from context
+	userID, err := utilities.GetUserIDFromContext(ctx)
+
+	if err != nil {
+		return err
+	}
 
 	if err := utilities.ValidateID(id); err != nil {
 		return err
