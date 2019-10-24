@@ -4,78 +4,51 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
 	"testing"
 
+	"github.com/idirall22/utilities"
 	_ "github.com/lib/pq"
 )
 
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "postgres"
-	password = "password"
-	dbname   = "diskshar_test"
+var (
+	provider  *PostgresProvider
+	database  *sql.DB
+	tableName = "groups"
+	groupNum  = 5
+	query     = fmt.Sprintf(`
+	DROP TABLE IF EXISTS %s;
+
+	CREATE TABLE IF NOT EXISTS %s(
+		id SERIAL PRIMARY KEY,
+		name VARCHAR NOT NULL,
+		admin_id INTEGER NOT NULL,
+		users_ids INTEGER[] default '{}'::int[],
+		created_at TIMESTAMP with TIME ZONE DEFAULT now(),
+		deleted_at TIMESTAMP DEFAULT NULL
+	);
+	`, tableName, tableName)
 )
 
-const (
-	groupNum = 5
-)
-
-var provider *PostgresProvider
-
-func cleanDB(db *sql.DB) error {
-	query := fmt.Sprintf(`
-		DROP TABLE IF EXISTS groups;
-
-		CREATE TABLE IF NOT EXISTS groups(
-		    id SERIAL PRIMARY KEY,
-			name VARCHAR NOT NULL,
-			admin_id INTEGER NOT NULL,
-			users_ids INTEGER[] default '{}'::int[],
-		    created_at TIMESTAMP with TIME ZONE DEFAULT now(),
-		    deleted_at TIMESTAMP DEFAULT NULL
-		);
-		`)
-
-	_, err := db.Exec(query)
-
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func closeDB(db *sql.DB) {
-	db.Close()
-}
-
-func connectDB() error {
-
-	dbInfos := fmt.Sprintf(`host=%s port=%d user=%s password=%s dbname=%s sslmode=disable`,
-		host, port, user, password, dbname)
-
-	db, err := sql.Open("postgres", dbInfos)
-	if err != nil {
-		return err
-	}
-
-	provider = &PostgresProvider{DB: db, TableName: "groups"}
-
-	err = cleanDB(db)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
+// TestGlobal run tests
 func TestGlobal(t *testing.T) {
-	if err := connectDB(); err != nil {
-		log.Fatal(err)
+
+	db, err := utilities.ConnectDataBaseTest()
+
+	if err != nil {
+		t.Error(err)
 		return
 	}
-	defer closeDB(provider.DB)
+
+	err = utilities.BuildDataBase(db, query)
+
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	defer utilities.CloseDataBaseTest(db)
+
+	provider = &PostgresProvider{DB: db, TableName: tableName}
 
 	t.Run("New", testNew)
 	t.Run("Get", testGet)
