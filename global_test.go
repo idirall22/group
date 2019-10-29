@@ -16,7 +16,7 @@ var (
 	testToken   string
 	tableName   = "groups"
 	query       = fmt.Sprintf(`
-	DROP TABLE IF EXISTS %s;
+	DROP TABLE IF EXISTS %s CASCADE;
 
 	CREATE TABLE IF NOT EXISTS %s(
 		id SERIAL PRIMARY KEY,
