@@ -11,7 +11,7 @@ type Service struct {
 	provider Provider
 }
 
-// NewService create a group service
-func NewService(db *sql.DB, tableName string) *Service {
+// StartService start a group service
+func StartService(db *sql.DB, tableName string) *Service {
 	return &Service{provider: &pr.PostgresProvider{DB: db, TableName: tableName}}
 }
