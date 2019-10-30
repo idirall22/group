@@ -6,14 +6,13 @@ import (
 )
 
 // Router comment endpoints
-func (s *Service) Router() *mux.Router {
-	r := &mux.Router{}
+func (s *Service) Router(r *mux.Router) {
 
-	r.HandleFunc("/groups", u.AuthnticateUser(s.ListGroupsHandler)).Methods("GET")
-	r.HandleFunc("/groups/{id}", u.AuthnticateUser(s.GetGroupHandler)).Methods("GET")
-	r.HandleFunc("/groups", u.AuthnticateUser(s.AddGroupHandler)).Methods("POST")
-	r.HandleFunc("/groups/{id}", u.AuthnticateUser(s.UpdateGroupHandler)).Methods("PUT")
-	r.HandleFunc("/groups/{id}", u.AuthnticateUser(s.DeleteGroupHandler)).Methods("DELETE")
+	sr := r.PathPrefix("/groups").Subrouter()
 
-	return r
+	sr.HandleFunc("/", u.AuthnticateUser(s.ListGroupsHandler)).Methods("GET")
+	sr.HandleFunc("/{id}", u.AuthnticateUser(s.GetGroupHandler)).Methods("GET")
+	sr.HandleFunc("/", u.AuthnticateUser(s.AddGroupHandler)).Methods("POST")
+	sr.HandleFunc("/{id}", u.AuthnticateUser(s.UpdateGroupHandler)).Methods("PUT")
+	sr.HandleFunc("/{id}", u.AuthnticateUser(s.DeleteGroupHandler)).Methods("DELETE")
 }
