@@ -15,4 +15,6 @@ func (s *Service) Router(r *mux.Router) {
 	sr.HandleFunc("/", u.AuthnticateUser(s.AddGroupHandler)).Methods("POST")
 	sr.HandleFunc("/{id}", u.AuthnticateUser(s.UpdateGroupHandler)).Methods("PUT")
 	sr.HandleFunc("/{id}", u.AuthnticateUser(s.DeleteGroupHandler)).Methods("DELETE")
+	sr.HandleFunc("/join/{id}", u.AuthnticateUser(s.JoinGroupHandler)).Methods("POST")
+	sr.HandleFunc("/leave/{id}", u.AuthnticateUser(s.LeaveGroupHandler)).Methods("POST")
 }
